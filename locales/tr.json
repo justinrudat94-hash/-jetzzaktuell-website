@@ -1,0 +1,132 @@
+{
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "close": "Kapat",
+    "confirm": "Onayla",
+    "back": "Geri",
+    "next": "İleri",
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "success": "Başarılı",
+    "search": "Ara",
+    "filter": "Filtre",
+    "apply": "Uygula",
+    "reset": "Sıfırla"
+  },
+  "auth": {
+    "welcome": "Jetzz'e Hoş Geldiniz",
+    "welcomeMessage": "Yakınınızdaki etkinlikleri keşfedin",
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol",
+    "getStarted": "Başla",
+    "email": "E-posta",
+    "password": "Şifre",
+    "confirmPassword": "Şifreyi Onayla",
+    "forgotPassword": "Şifremi Unuttum?",
+    "dontHaveAccount": "Hesabınız yok mu?",
+    "alreadyHaveAccount": "Zaten hesabınız var mı?",
+    "signUp": "Kayıt Ol",
+    "signIn": "Giriş Yap",
+    "resetPassword": "Şifreyi Sıfırla",
+    "sendResetLink": "Bağlantı Gönder",
+    "backToLogin": "Girişe Dön",
+    "checkEmail": "Lütfen e-postanızı kontrol edin",
+    "resetLinkSent": "Sıfırlama bağlantısı e-postanıza gönderildi"
+  },
+  "tabs": {
+    "home": "Ana Sayfa",
+    "explore": "Keşfet",
+    "map": "Harita",
+    "create": "Oluştur",
+    "events": "Etkinlikler",
+    "live": "Canlı",
+    "profile": "Profil"
+  },
+  "home": {
+    "title": "Jetzz",
+    "subtitle": "Yakınınızdaki etkinlikler",
+    "nearYou": "Yakınınızda",
+    "trending": "Popüler",
+    "noEvents": "Etkinlik bulunamadı"
+  },
+  "explore": {
+    "title": "Keşfet",
+    "searchPlaceholder": "Etkinlikler, yerler, kategoriler...",
+    "categories": "Kategoriler",
+    "seeAll": "Tümünü Gör"
+  },
+  "map": {
+    "title": "Harita",
+    "radius": "Yarıçap",
+    "showList": "Liste Göster"
+  },
+  "create": {
+    "title": "Etkinlik Oluştur",
+    "eventTitle": "Etkinlik Başlığı",
+    "description": "Açıklama",
+    "category": "Kategori",
+    "location": "Konum",
+    "date": "Tarih",
+    "time": "Saat",
+    "price": "Fiyat",
+    "free": "Ücretsiz",
+    "publish": "Yayınla",
+    "draft": "Taslak Olarak Kaydet"
+  },
+  "events": {
+    "title": "Etkinliklerim",
+    "upcoming": "Yaklaşan",
+    "past": "Geçmiş",
+    "drafts": "Taslaklar",
+    "participating": "Katılıyorum",
+    "hosting": "Düzenlenen"
+  },
+  "live": {
+    "title": "Canlı",
+    "nowStreaming": "Şimdi Canlı",
+    "startStream": "Yayın Başlat",
+    "viewers": "İzleyici",
+    "noLiveStreams": "Canlı yayın yok"
+  },
+  "profile": {
+    "title": "Profil",
+    "editProfile": "Profili Düzenle",
+    "settings": "Ayarlar",
+    "favorites": "Favoriler",
+    "following": "Takip Ettiklerim",
+    "followers": "Takipçiler",
+    "rewards": "Ödüller",
+    "logout": "Çıkış Yap",
+    "myEvents": "Etkinliklerim",
+    "statistics": "İstatistikler"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "notifications": "Bildirimler",
+    "privacy": "Gizlilik",
+    "about": "Hakkında",
+    "termsOfService": "Kullanım Koşulları",
+    "privacyPolicy": "Gizlilik Politikası",
+    "changePassword": "Şifre Değiştir",
+    "twoFactor": "İki Faktörlü Doğrulama",
+    "deleteAccount": "Hesabı Sil"
+  },
+  "event": {
+    "details": "Detaylar",
+    "participants": "Katılımcılar",
+    "participate": "Katıl",
+    "cancel": "İptal Et",
+    "share": "Paylaş",
+    "report": "Bildir",
+    "like": "Beğen",
+    "comment": "Yorum Yap",
+    "tickets": "Biletler",
+    "gallery": "Galeri",
+    "lineup": "Program",
+    "contact": "İletişim"
+  }
+}

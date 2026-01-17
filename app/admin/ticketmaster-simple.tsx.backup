@@ -1,0 +1,696 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+} from 'react-native';
+import { router } from 'expo-router';
+import { ArrowLeft, Download, CheckCircle, Calendar, Settings } from 'lucide-react-native';
+import { Colors, Spacing, FontSizes, FontWeights, BorderRadius } from '../../constants';
+import { supabase } from '../../lib/supabase';
+import ImportModeSelector from '../../components/ImportModeSelector';
+import ImportConfigPanel from '../../components/ImportConfigPanel';
+import ImportProgress from '../../components/ImportProgress';
+import {
+  generateQueryMatrix,
+  getDefaultConfig,
+  estimateImportTime,
+  estimateEventCount,
+  type QueryConfig,
+  type TicketmasterQuery,
+} from '../../utils/ticketmasterQueryGenerator';
+
+export default function TicketmasterSimpleScreen() {
+  const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    today: 0,
+    thisWeek: 0,
+  });
+  const [importHistory, setImportHistory] = useState([]);
+
+  const [selectedMode, setSelectedMode] = useState<'quick' | 'standard' | 'full' | 'adaptive'>('standard');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [useCityFilter, setUseCityFilter] = useState(false);
+  const [selectedTimePeriods, setSelectedTimePeriods] = useState<number[]>([0, 1, 2]);
+
+  const [importProgress, setImportProgress] = useState<any>(null);
+
+  useEffect(() => {
+    loadStats();
+    loadImportHistory();
+    const config = getDefaultConfig('standard');
+    setSelectedCategories(config.categories);
+    setSelectedTimePeriods([0, 1, 2]);
+  }, []);
+
+  useEffect(() => {
+    const config = getDefaultConfig(selectedMode);
+    setSelectedCategories(config.categories);
+    setSelectedTimePeriods(
+      config.timePeriods.map((_, idx) => idx).slice(0, selectedMode === 'quick' ? 1 : config.timePeriods.length)
+    );
+    if (selectedMode === 'full') {
+      setUseCityFilter(true);
+      setSelectedCities(config.cities);
+    } else {
+      setUseCityFilter(false);
+      setSelectedCities([]);
+    }
+  }, [selectedMode]);
+
+  const loadStats = async () => {
+    try {
+      const { count: total } = await supabase
+        .from('events')
+        .select('id', { count: 'exact', head: true })
+        .eq('external_source', 'ticketmaster');
+
+      const today = new Date().toISOString().split('T')[0];
+      const { count: todayCount } = await supabase
+        .from('events')
+        .select('id', { count: 'exact', head: true })
+        .eq('external_source', 'ticketmaster')
+        .gte('created_at', today);
+
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { count: weekCount } = await supabase
+        .from('events')
+        .select('id', { count: 'exact', head: true })
+        .eq('external_source', 'ticketmaster')
+        .gte('created_at', weekAgo);
+
+      setStats({
+        total: total || 0,
+        today: todayCount || 0,
+        thisWeek: weekCount || 0,
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadImportHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ticketmaster_import_history')
+        .select('*')
+        .order('started_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setImportHistory(data || []);
+    } catch (error) {
+      console.error('Error loading import history:', error);
+    }
+  };
+
+  const handleManualImport = async () => {
+    setImporting(true);
+    const startTime = new Date();
+    let historyId = null;
+
+    try {
+      const { data: historyRecord, error: historyError } = await supabase
+        .from('ticketmaster_import_history')
+        .insert({
+          started_at: startTime.toISOString(),
+          status: 'running',
+        })
+        .select()
+        .single();
+
+      if (historyError) throw historyError;
+      historyId = historyRecord.id;
+
+      const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000001';
+      const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/fetch-ticketmaster-events`;
+
+      let totalImported = 0;
+      let totalSkipped = 0;
+      let totalErrors = 0;
+      let totalFound = 0;
+      let page = 0;
+      const size = 200;
+
+      const today = new Date();
+      const startDate = today.toISOString().split('T')[0];
+      const endDate = new Date(today.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      while (page < 20) {
+        if (page % 5 === 0) {
+          console.log(`📄 Fetching page ${page + 1}/20...`);
+        }
+
+        const url = `${EDGE_FUNCTION_URL}?countryCode=DE&size=${size}&page=${page}&sort=date,asc&startDateTime=${startDate}T00:00:00Z&endDateTime=${endDate}T23:59:59Z`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.log(`⚠️ API returned ${response.status} on page ${page + 1}. Stopping import.`);
+          console.log(`Total fetched before error: ${totalFound} events`);
+          break;
+        }
+
+        const data = await response.json();
+        const events = data._embedded?.events || [];
+
+        if (events.length === 0) break;
+
+        totalFound += events.length;
+        if (page % 5 === 0) {
+          console.log(`   Found ${totalFound} events so far...`);
+        }
+
+        for (const event of events) {
+          try {
+            const { data: existing } = await supabase
+              .from('events')
+              .select('id')
+              .eq('external_id', event.id)
+              .eq('external_source', 'ticketmaster')
+              .maybeSingle();
+
+            if (existing) {
+              totalSkipped++;
+              continue;
+            }
+
+            const venue = event._embedded?.venues?.[0];
+            const location = venue?.name || '';
+            const city = venue?.city?.name || '';
+            const country = venue?.country?.name || '';
+            const fullLocation = [location, city, country].filter(Boolean).join(', ');
+
+            const latitude = venue?.location?.latitude ? parseFloat(venue.location.latitude) : null;
+            const longitude = venue?.location?.longitude ? parseFloat(venue.location.longitude) : null;
+
+            const startDateTime = event.dates?.start?.dateTime || event.dates?.start?.localDate;
+            if (!startDateTime) {
+              totalSkipped++;
+              continue;
+            }
+
+            const startDate = startDateTime.split('T')[0];
+            const startTime = startDateTime.includes('T')
+              ? startDateTime.split('T')[1].substring(0, 5)
+              : '20:00';
+
+            const segment = event.classifications?.[0]?.segment?.name?.toLowerCase();
+            const genre = event.classifications?.[0]?.genre?.name?.toLowerCase();
+
+            let category = 'other';
+            if (segment?.includes('music') || genre?.includes('music')) category = 'music';
+            else if (segment?.includes('sports') || genre?.includes('sport')) category = 'sports';
+            else if (segment?.includes('arts') || segment?.includes('theatre')) category = 'art';
+            else if (genre?.includes('comedy')) category = 'nightlife';
+
+            const images = event.images || [];
+            const image = images.find(img => img.ratio === '16_9' && img.width > 1000)
+              || images.find(img => img.width > 800)
+              || images[0];
+
+            const description = event.info || event.pleaseNote || `${event.name} from Ticketmaster`;
+
+            const { error } = await supabase
+              .from('events')
+              .insert({
+                user_id: SYSTEM_USER_ID,
+                title: event.name,
+                description,
+                category,
+                location: fullLocation,
+                latitude,
+                longitude,
+                start_date: startDate,
+                start_time: startTime,
+                end_date: null,
+                end_time: null,
+                image_url: image?.url || null,
+                preview_image_url: image?.url || null,
+                is_published: true,
+                is_free: false,
+                ticket_url: event.url,
+                external_url: event.url,
+                external_id: event.id,
+                external_source: 'ticketmaster',
+              });
+
+            if (error) {
+              if (error.code === '23505') {
+                totalSkipped++;
+              } else {
+                totalErrors++;
+              }
+            } else {
+              totalImported++;
+            }
+          } catch (error) {
+            totalErrors++;
+          }
+        }
+
+        page++;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      const endTime = new Date();
+      const durationSeconds = Math.round((endTime - startTime) / 1000);
+
+      if (historyId) {
+        await supabase
+          .from('ticketmaster_import_history')
+          .update({
+            completed_at: endTime.toISOString(),
+            duration_seconds: durationSeconds,
+            total_found: totalFound,
+            imported_count: totalImported,
+            skipped_count: totalSkipped,
+            error_count: totalErrors,
+            status: 'completed',
+            pages_fetched: page,
+          })
+          .eq('id', historyId);
+      }
+
+      console.log(`✅ Import completed: ${totalImported} imported, ${totalSkipped} skipped, ${totalErrors} errors in ${durationSeconds}s`);
+
+      Alert.alert(
+        'Import abgeschlossen!',
+        `Gefunden: ${totalFound}\nImportiert: ${totalImported}\nÜbersprungen: ${totalSkipped}\nFehler: ${totalErrors}\nDauer: ${durationSeconds}s`,
+        [{ text: 'OK', onPress: () => { loadStats(); loadImportHistory(); } }]
+      );
+    } catch (error) {
+      const endTime = new Date();
+      const durationSeconds = Math.round((endTime - startTime) / 1000);
+
+      if (historyId) {
+        await supabase
+          .from('ticketmaster_import_history')
+          .update({
+            completed_at: endTime.toISOString(),
+            duration_seconds: durationSeconds,
+            status: 'failed',
+            error_message: error.message,
+          })
+          .eq('id', historyId);
+      }
+
+      Alert.alert('Fehler', error.message);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleSetupCron = () => {
+    Alert.alert(
+      'Automatischen Import einrichten',
+      'Um Events automatisch jeden Tag zu importieren:\n\n1. PM2 installieren:\nnpm install -g pm2\n\n2. Cron Job starten:\npm2 start scripts/ticketmaster-simple-import.js --name ticketmaster-daily --cron "0 6 * * *" --no-autorestart\n\n3. Status checken:\npm2 list',
+      [
+        { text: 'OK' },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Ticketmaster Import</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={24} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Ticketmaster Import</Text>
+      </View>
+
+      <ScrollView style={styles.content}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📊 Statistiken</Text>
+
+          <View style={styles.statsGrid}>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{stats.total}</Text>
+              <Text style={styles.statLabel}>Gesamt Events</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{stats.today}</Text>
+              <Text style={styles.statLabel}>Heute</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{stats.thisWeek}</Text>
+              <Text style={styles.statLabel}>Diese Woche</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🚀 Import</Text>
+
+          <TouchableOpacity
+            style={[styles.actionButton, importing && styles.disabledButton]}
+            onPress={handleManualImport}
+            disabled={importing}
+          >
+            {importing ? (
+              <>
+                <ActivityIndicator size="small" color="#FFF" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>Importiere...</Text>
+              </>
+            ) : (
+              <>
+                <Download size={20} color="#FFF" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>Manueller Import</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.secondaryButton]}
+            onPress={handleSetupCron}
+          >
+            <Calendar size={20} color={Colors.primary} style={styles.buttonIcon} />
+            <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+              Automatischen Import einrichten
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📜 Import History</Text>
+          <Text style={styles.historyInfo}>
+            Import-Bereich: Heute + 1 Jahr | Ticketmaster API Limit beachtet | Sortiert nach Datum
+          </Text>
+          {importHistory.length === 0 ? (
+            <Text style={styles.noHistoryText}>Noch keine Imports durchgeführt</Text>
+          ) : (
+            importHistory.map((record) => (
+              <View key={record.id} style={styles.historyCard}>
+                <View style={styles.historyHeader}>
+                  <Text style={styles.historyDate}>
+                    {new Date(record.started_at).toLocaleString('de-DE')}
+                  </Text>
+                  <View style={[
+                    styles.statusBadge,
+                    record.status === 'completed' && styles.statusCompleted,
+                    record.status === 'failed' && styles.statusFailed,
+                    record.status === 'running' && styles.statusRunning,
+                  ]}>
+                    <Text style={styles.statusText}>
+                      {record.status === 'completed' ? '✅ Erfolgreich' :
+                       record.status === 'failed' ? '❌ Fehlgeschlagen' :
+                       '⏳ Läuft'}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.historyStats}>
+                  <View style={styles.historyStat}>
+                    <Text style={styles.historyStatLabel}>Gefunden</Text>
+                    <Text style={styles.historyStatValue}>{record.total_found}</Text>
+                  </View>
+                  <View style={styles.historyStat}>
+                    <Text style={styles.historyStatLabel}>Importiert</Text>
+                    <Text style={[styles.historyStatValue, styles.successValue]}>{record.imported_count}</Text>
+                  </View>
+                  <View style={styles.historyStat}>
+                    <Text style={styles.historyStatLabel}>Übersprungen</Text>
+                    <Text style={[styles.historyStatValue, styles.warningValue]}>{record.skipped_count}</Text>
+                  </View>
+                  <View style={styles.historyStat}>
+                    <Text style={styles.historyStatLabel}>Dauer</Text>
+                    <Text style={styles.historyStatValue}>{record.duration_seconds}s</Text>
+                  </View>
+                </View>
+                {record.error_message && (
+                  <Text style={styles.errorMessage}>Fehler: {record.error_message}</Text>
+                )}
+              </View>
+            ))
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.infoTitle}>ℹ️ Wie es funktioniert</Text>
+          <Text style={styles.infoText}>
+            1. Klicke auf "Manueller Import" um Events sofort zu importieren
+          </Text>
+          <Text style={styles.infoText}>
+            2. Importiert Events für das nächste Jahr (stoppt bei API-Limit)
+          </Text>
+          <Text style={styles.infoText}>
+            3. Duplikate werden automatisch erkannt und übersprungen
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.successCard}>
+            <CheckCircle size={24} color={Colors.success} />
+            <View style={styles.successContent}>
+              <Text style={styles.successTitle}>✅ Einfach & Zuverlässig</Text>
+              <Text style={styles.successText}>
+                Dieses System nutzt die normale Ticketmaster API und funktioniert zuverlässig.
+                Keine komplizierten Edge Functions oder Worker mehr!
+              </Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  backButton: {
+    padding: Spacing.xs,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: FontSizes.xl,
+    fontWeight: FontWeights.bold,
+    color: Colors.text,
+    marginLeft: Spacing.sm,
+  },
+  content: {
+    flex: 1,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  section: {
+    padding: Spacing.md,
+  },
+  sectionTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: FontWeights.semibold,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statValue: {
+    fontSize: 32,
+    fontWeight: FontWeights.bold,
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  secondaryButton: {
+    backgroundColor: '#FFF',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  buttonIcon: {
+    marginRight: Spacing.sm,
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: FontSizes.md,
+    fontWeight: FontWeights.semibold,
+  },
+  secondaryButtonText: {
+    color: Colors.primary,
+  },
+  infoTitle: {
+    fontSize: FontSizes.md,
+    fontWeight: FontWeights.semibold,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  infoText: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: Spacing.xs,
+  },
+  historyInfo: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+    fontStyle: 'italic',
+  },
+  noHistoryText: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    padding: Spacing.lg,
+  },
+  historyCard: {
+    backgroundColor: '#FFF',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  historyDate: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  statusCompleted: {
+    backgroundColor: '#E8F5E9',
+  },
+  statusFailed: {
+    backgroundColor: '#FFEBEE',
+  },
+  statusRunning: {
+    backgroundColor: '#FFF3E0',
+  },
+  statusText: {
+    fontSize: FontSizes.xs,
+    fontWeight: FontWeights.semibold,
+  },
+  historyStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  historyStat: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  historyStatLabel: {
+    fontSize: FontSizes.xs,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  historyStatValue: {
+    fontSize: FontSizes.md,
+    fontWeight: FontWeights.bold,
+    color: Colors.text,
+  },
+  successValue: {
+    color: '#4CAF50',
+  },
+  warningValue: {
+    color: '#FF9800',
+  },
+  errorMessage: {
+    fontSize: FontSizes.xs,
+    color: '#F44336',
+    marginTop: Spacing.sm,
+    padding: Spacing.sm,
+    backgroundColor: '#FFEBEE',
+    borderRadius: BorderRadius.sm,
+  },
+  successCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.success + '10',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.success + '30',
+  },
+  successContent: {
+    flex: 1,
+    marginLeft: Spacing.md,
+  },
+  successTitle: {
+    fontSize: FontSizes.md,
+    fontWeight: FontWeights.semibold,
+    color: Colors.success,
+    marginBottom: 4,
+  },
+  successText: {
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+});

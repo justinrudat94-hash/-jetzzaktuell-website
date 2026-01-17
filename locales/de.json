@@ -1,0 +1,132 @@
+{
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "search": "Suchen",
+    "filter": "Filter",
+    "apply": "Anwenden",
+    "reset": "Zurücksetzen"
+  },
+  "auth": {
+    "welcome": "Willkommen bei Jetzz",
+    "welcomeMessage": "Entdecke lokale Events in deiner Nähe",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "getStarted": "Jetzt starten",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "forgotPassword": "Passwort vergessen?",
+    "dontHaveAccount": "Noch kein Konto?",
+    "alreadyHaveAccount": "Bereits ein Konto?",
+    "signUp": "Registrieren",
+    "signIn": "Anmelden",
+    "resetPassword": "Passwort zurücksetzen",
+    "sendResetLink": "Link senden",
+    "backToLogin": "Zurück zur Anmeldung",
+    "checkEmail": "Bitte überprüfe deine E-Mails",
+    "resetLinkSent": "Ein Link zum Zurücksetzen wurde an deine E-Mail gesendet"
+  },
+  "tabs": {
+    "home": "Start",
+    "explore": "Entdecken",
+    "map": "Karte",
+    "create": "Erstellen",
+    "events": "Events",
+    "live": "Live",
+    "profile": "Profil"
+  },
+  "home": {
+    "title": "Jetzz",
+    "subtitle": "Events in deiner Nähe",
+    "nearYou": "In deiner Nähe",
+    "trending": "Angesagt",
+    "noEvents": "Keine Events gefunden"
+  },
+  "explore": {
+    "title": "Entdecken",
+    "searchPlaceholder": "Events, Orte, Kategorien...",
+    "categories": "Kategorien",
+    "seeAll": "Alle anzeigen"
+  },
+  "map": {
+    "title": "Karte",
+    "radius": "Radius",
+    "showList": "Liste anzeigen"
+  },
+  "create": {
+    "title": "Event erstellen",
+    "eventTitle": "Event Titel",
+    "description": "Beschreibung",
+    "category": "Kategorie",
+    "location": "Ort",
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "price": "Preis",
+    "free": "Kostenlos",
+    "publish": "Veröffentlichen",
+    "draft": "Als Entwurf speichern"
+  },
+  "events": {
+    "title": "Meine Events",
+    "upcoming": "Bevorstehend",
+    "past": "Vergangen",
+    "drafts": "Entwürfe",
+    "participating": "Teilnehmend",
+    "hosting": "Veranstaltet"
+  },
+  "live": {
+    "title": "Live",
+    "nowStreaming": "Jetzt live",
+    "startStream": "Stream starten",
+    "viewers": "Zuschauer",
+    "noLiveStreams": "Keine Live-Streams verfügbar"
+  },
+  "profile": {
+    "title": "Profil",
+    "editProfile": "Profil bearbeiten",
+    "settings": "Einstellungen",
+    "favorites": "Favoriten",
+    "following": "Folge ich",
+    "followers": "Follower",
+    "rewards": "Belohnungen",
+    "logout": "Abmelden",
+    "myEvents": "Meine Events",
+    "statistics": "Statistiken"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "notifications": "Benachrichtigungen",
+    "privacy": "Datenschutz",
+    "about": "Über",
+    "termsOfService": "Nutzungsbedingungen",
+    "privacyPolicy": "Datenschutzerklärung",
+    "changePassword": "Passwort ändern",
+    "twoFactor": "Zwei-Faktor-Authentifizierung",
+    "deleteAccount": "Konto löschen"
+  },
+  "event": {
+    "details": "Details",
+    "participants": "Teilnehmer",
+    "participate": "Teilnehmen",
+    "cancel": "Absagen",
+    "share": "Teilen",
+    "report": "Melden",
+    "like": "Gefällt mir",
+    "comment": "Kommentieren",
+    "tickets": "Tickets",
+    "gallery": "Galerie",
+    "lineup": "Line-up",
+    "contact": "Kontakt"
+  }
+}

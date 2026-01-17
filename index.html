@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jetzz - Entdecke Events in deiner Nähe</title>
+<meta name="description" content="Die ultimative Event-App für Deutschland. Finde Konzerte, Festivals, Partys und mehr in deiner Stadt.">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  color: #111827;
+  background: #fff;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+nav .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0284C7;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+  align-items: center;
+}
+
+nav a {
+  text-decoration: none;
+  color: #374151;
+  transition: color 0.3s;
+}
+
+nav a:hover {
+  color: #0284C7;
+}
+
+.btn-primary {
+  background: #0284C7;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  background: #0369A1;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(2, 132, 199, 0.3);
+}
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 50%, #EEF2FF 100%);
+  position: relative;
+  overflow: hidden;
+  padding-top: 80px;
+  text-align: center;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 900px;
+  padding: 2rem;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #DBEAFE;
+  color: #1D4ED8;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  color: #111827;
+}
+
+.hero h1 span {
+  color: #0284C7;
+}
+
+.hero p {
+  font-size: 1.25rem;
+  color: #6B7280;
+  margin-bottom: 2rem;
+  line-height: 1.8;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-block;
+}
+
+.btn-blue {
+  background: #0284C7;
+  color: white;
+  box-shadow: 0 10px 30px rgba(2, 132, 199, 0.3);
+}
+
+.btn-blue:hover {
+  background: #0369A1;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(2, 132, 199, 0.4);
+}
+
+.btn-outline {
+  border: 2px solid #D1D5DB;
+  color: #374151;
+}
+
+.btn-outline:hover {
+  border-color: #0284C7;
+  color: #0284C7;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6B7280;
+  font-size: 0.875rem;
+}
+
+.stat::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #10B981;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.hero-image {
+  margin-top: 4rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-image img {
+  width: 100%;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.features {
+  padding: 6rem 1rem;
+  background: white;
+}
+
+.section-title {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.section-title h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.section-title p {
+  font-size: 1.25rem;
+  color: #6B7280;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  padding: 2rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 1rem;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.feature-card:hover {
+  border-color: #93C5FD;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+}
+
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  transition: transform 0.3s;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+.feature-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+}
+
+.feature-card p {
+  color: #6B7280;
+  line-height: 1.6;
+}
+
+.download {
+  padding: 6rem 1rem;
+  background: linear-gradient(135deg, #0284C7 0%, #4F46E5 100%);
+  color: white;
+}
+
+.download-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.download-content h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.download-content p {
+  font-size: 1.25rem;
+  color: #DBEAFE;
+  margin-bottom: 2rem;
+  line-height: 1.8;
+}
+
+.download-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.store-button {
+  background: #000;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s;
+}
+
+.store-button:hover {
+  background: #1F2937;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.store-icon {
+  font-size: 2rem;
+}
+
+.store-text {
+  text-align: left;
+}
+
+.store-text small {
+  display: block;
+  font-size: 0.75rem;
+  color: #D1D5DB;
+}
+
+.store-text strong {
+  display: block;
+  font-size: 1.125rem;
+}
+
+.download-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.download-stat strong {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.download-stat span {
+  color: #DBEAFE;
+  font-size: 0.875rem;
+}
+
+.download-image img {
+  width: 100%;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+footer {
+  background: #111827;
+  color: white;
+  padding: 3rem 1rem 2rem;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+}
+
+.footer-brand h3 {
+  font-size: 1.5rem;
+  color: #38BDF8;
+  margin-bottom: 1rem;
+}
+
+.footer-brand p {
+  color: #9CA3AF;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.footer-links h4 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.footer-links ul {
+  list-style: none;
+}
+
+.footer-links ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+  color: #9CA3AF;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: #38BDF8;
+}
+
+.social-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.social-links a {
+  width: 40px;
+  height: 40px;
+  background: #1F2937;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.social-links a:hover {
+  background: #38BDF8;
+  color: white;
+  transform: translateY(-3px);
+}
+
+.footer-bottom {
+  border-top: 1px solid #1F2937;
+  padding-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #9CA3AF;
+  font-size: 0.875rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    display: none;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero p {
+    font-size: 1.125rem;
+  }
+
+  .download-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .download-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .btn-large {
+    width: 100%;
+    text-align: center;
+  }
+
+  .download-buttons {
+    flex-direction: column;
+  }
+
+  .store-button {
+    width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="logo">Jetzz</div>
+    <ul>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="https://justinrudat94-hash.github.io/-jetzzaktuell-website/impressum.html">Impressum</a></li>
+      <li><a href="#download" class="btn-primary">App laden</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span>✨</span>
+      <span>Die Event-App für Deutschland</span>
+    </div>
+
+    <h1>
+      Entdecke Events<br>
+      <span>in deiner Nähe</span>
+    </h1>
+
+    <p>
+      Finde Konzerte, Festivals, Partys und mehr. Erstelle eigene Events,
+      vernetze dich mit anderen und verpasse nie wieder dein Lieblingsevent.
+    </p>
+
+    <div class="hero-buttons">
+      <a href="#download" class="btn-large btn-blue">Jetzt kostenlos laden →</a>
+      <a href="#features" class="btn-large btn-outline">Mehr erfahren</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat">Über 10.000+ Events</div>
+      <div class="stat">100% kostenlos</div>
+    </div>
+
+    <div class="hero-image">
+      <img src="https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Event Party">
+    </div>
+  </div>
+</section>
+
+<section id="features" class="features">
+  <div class="container">
+    <div class="section-title">
+      <h2>Alles, was du brauchst</h2>
+      <p>Jetzz bietet dir alle Features, um Events zu entdecken, zu erstellen und zu teilen.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #DBEAFE; color: #0284C7;">📍</div>
+        <h3>Events in deiner Nähe</h3>
+        <p>Entdecke Events basierend auf deinem Standort. Finde sofort, was in deiner Stadt los ist.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #D1FAE5; color: #059669;">📅</div>
+        <h3>Eigene Events erstellen</h3>
+        <p>Organisiere deine eigenen Events, lade Freunde ein und verwalte Teilnehmer mit wenigen Klicks.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #FEE2E2; color: #DC2626;">❤️</div>
+        <h3>Favoriten & Erinnerungen</h3>
+        <p>Speichere deine Lieblings-Events und erhalte Benachrichtigungen, damit du nichts verpasst.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #F3E8FF; color: #9333EA;">👥</div>
+        <h3>Social Features</h3>
+        <p>Folge Veranstaltern, like Events, kommentiere und vernetze dich mit der Community.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #FFEDD5; color: #EA580C;">🎟️</div>
+        <h3>Ticket-Integration</h3>
+        <p>Kaufe Tickets direkt in der App und habe alle deine Event-Tickets an einem Ort.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #FCE7F3; color: #DB2777;">📈</div>
+        <h3>Trending Events</h3>
+        <p>Entdecke angesagte Events und beliebte Veranstaltungen in deiner Region.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #E0E7FF; color: #4F46E5;">🛡️</div>
+        <h3>Sicher & Verifiziert</h3>
+        <p>KYC-Verifizierung für Veranstalter und sichere Zahlungsabwicklung über Stripe.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #FEF3C7; color: #CA8A04;">⚡</div>
+        <h3>Live-Streams</h3>
+        <p>Streame Events live und erreiche ein noch größeres Publikum mit integrierten Live-Features.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="download" class="download">
+  <div class="download-grid">
+    <div class="download-content">
+      <h2>Bereit für dein nächstes Event?</h2>
+      <p>
+        Lade dir jetzt die Jetzz App kostenlos herunter und entdecke tausende Events
+        in deiner Nähe. Verfügbar für iOS und Android.
+      </p>
+
+      <div class="download-buttons">
+        <a href="#" class="store-button">
+          <div class="store-icon">🍎</div>
+          <div class="store-text">
+            <small>Download on the</small>
+            <strong>App Store</strong>
+          </div>
+        </a>
+
+        <a href="#" class="store-button">
+          <div class="store-icon">📱</div>
+          <div class="store-text">
+            <small>Get it on</small>
+            <strong>Google Play</strong>
+          </div>
+        </a>
+      </div>
+
+      <div class="download-stats">
+        <div class="download-stat">
+          <strong>10K+</strong>
+          <span>Events</span>
+        </div>
+        <div class="download-stat">
+          <strong>50K+</strong>
+          <span>Downloads</span>
+        </div>
+        <div class="download-stat">
+          <strong>4.8★</strong>
+          <span>Rating</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="download-image">
+      <img src="https://images.pexels.com/photos/887751/pexels-photo-887751.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Jetzz App">
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <h3>Jetzz</h3>
+      <p>Die ultimative Event-App für Deutschland. Entdecke, erstelle und teile Events in deiner Nähe.</p>
+    </div>
+
+    <div class="footer-links">
+      <h4>Produkt</h4>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#download">Download</a></li>
+        <li><a href="#">Premium</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-links">
+      <h4>Rechtliches</h4>
+      <ul>
+        <li><a href="https://justinrudat94-hash.github.io/-jetzzaktuell-website/impressum.html">Impressum</a></li>
+        <li><a href="https://justinrudat94-hash.github.io/-jetzzaktuell-website/datenschutz.html">Datenschutz</a></li>
+        <li><a href="https://justinrudat94-hash.github.io/-jetzzaktuell-website/agb.html">AGB</a></li>
+        <li><a href="https://justinrudat94-hash.github.io/-jetzzaktuell-website/widerruf.html">Widerruf</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-links">
+      <h4>Kontakt</h4>
+      <ul>
+        <li><a href="mailto:info@jetzz.app">📧 info@jetzz.app</a></li>
+      </ul>
+      <div class="social-links">
+        <a href="https://instagram.com">📷</a>
+        <a href="https://twitter.com">🐦</a>
+        <a href="https://facebook.com">📘</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2025 Jetzz. Alle Rechte vorbehalten.</p>
+    <p>Made with ❤️ in Germany</p>
+  </div>
+</footer>
+
+</body>
+</html>
